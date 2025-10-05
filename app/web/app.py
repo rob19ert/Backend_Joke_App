@@ -26,8 +26,21 @@ app = Application()
 
 def run_app():
     setup_routes(app)
-    setup_aiohttp_apispec(app, title="Joke App", url='/docs/json', swagger_path='/docs')
+    setup_aiohttp_apispec(
+        app,
+        title="Joke App",
+        url='/docs/json',
+        swagger_path='/docs',
+        securityDefinitions={
+            "BearerAuth": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header",
+                "description": "Bearer token"
+            }
+        },
+    )
     setup_middleware(app)
     setup_store(app)
-    aiohttp_run_app(app)
+    aiohttp_run_app(app, host = "127.0.0.1", port=8000)
 

@@ -14,6 +14,9 @@ def setup_routes(app):
     from app.crm.views import AddNewUserView
     from app.crm.views import LoginView
     from app.crm.views import GetUsersView
+    from app.crm.views import UpdateJokeView
+    from app.crm.views import DeleteTopicsView
+    from app.crm.views import RateJokeView
 
     app.router.add_view('/topics', AddNewTopicView )
     app.router.add_view('/joke', AddNewJokeView)
@@ -23,3 +26,6 @@ def setup_routes(app):
     app.router.add_view('/register_user', AddNewUserView)
     app.router.add_view('/login', LoginView)
     app.router.add_view('/get_user', GetUsersView)
+    app.router.add_view('/joke/{joke_id}/update', UpdateJokeView)
+    app.router.add_view('/topics/{topic_id}', DeleteTopicsView)
+    app.router.add_view('/joke/{joke_id}/rate',RateJokeView)

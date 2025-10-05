@@ -39,7 +39,8 @@ class GetJokeRequestSchema(Schema):
 
     text = fields.Str(required=True)
 
-
+class JokeUpdateSchema(Schema):
+    text = fields.Str(required=True)
 
 # Данные, которые мы получаем от пользователя на его запрос отправить Post
 class AddTopicSchema(Schema):
@@ -54,3 +55,6 @@ class ListTopicSchema(OkResponseSchema):
 
 class GetJokeResponseSchema(OkResponseSchema):
     data = fields.Nested(GetJokeRequestSchema, many=True)
+
+class RatingJokeSchema(Schema):
+    value = fields.Integer(required=True, validate = lambda v: v in (-1, 1))

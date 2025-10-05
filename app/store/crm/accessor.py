@@ -5,11 +5,10 @@ import os
 JWT_SECRET = os.getenv("JWT_SECRET", "default_secret")
 import bcrypt
 import jwt
-from sqlalchemy import select, func
-from sqlalchemy.sql.operators import ilike_op
-from sqlalchemy.testing.suite.test_reflection import users
+from sqlalchemy import select, func, update
 
-from app.crm.model import Jokes, Topic, User
+
+from app.crm.model import Jokes, Topic, User, Rating
 
 if typing.TYPE_CHECKING:
     from app.web.app import Application
@@ -127,3 +126,43 @@ class CrmAccessor:
                 user = await session.execute(select(User))
 
                 return user.scalars().all()
+
+    async def joke_update(self, joke_id: int, text: str ) -> Jokes:
+        async with self.app.database.session() as session:
+            async with session.begin():
+                result = await session.execute(select(Jokes).where(Jokes.joke_id == joke_id))
+                joke = result.scalar_one_or_none()
+                if not joke:
+                    return None
+                joke.text = text
+            await session.commit()
+        return joke
+
+    async def delete_topic(self, topic_id: int) -> bool:
+        async with self.app.database.session() as session:
+            async with session.begin():
+                result = await session.execute(select(Topic).where(Topic.topic_id == topic_id))
+                topic = result.scalar_one_or_none()
+                if topic is None:
+                    return False
+                await session.delete(topic)
+                return True
+
+    async def rate_joke(self, joke_id : int, user_id: int, value: int) -> Jokes:
+        async with self.app.database.session() as session:
+            async with session.begin():
+                result = await session.execute(select(Jokes).where(Jokes.joke_id == joke_id))
+                joke = result.scalar_one_or_none()
+                if not joke:
+                    return None
+
+                existing = await session.execute(select(Rating).where(Rating.joke_id == joke_id, Rating.user_id == user_id))
+                rating = existing.scalar_one_or_none()
+                if rating:
+                    rating.value = value
+                else:
+                    rating = Rating(joke_id=joke_id, user_id=user_id, value=value)
+                    session.add(rating)
+
+            await session.refresh(rating)
+            return rating

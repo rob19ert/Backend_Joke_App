@@ -40,7 +40,16 @@ async def auth_middleware(request, handler):
             return await handler(request)
         raise HTTPUnauthorized(text="Authorization required")
 
-    token = request.headers["Authorization"].split(" ")[1]
+
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        raise HTTPUnauthorized(text="Authorization required")
+
+    parts = auth_header.split(" ")
+    if len(parts) != 2 or parts[0] != "Bearer":
+        raise HTTPUnauthorized(text="Invalid authorization header format")
+    token = parts[1]
+
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
     except jwt.ExpiredSignatureError:
@@ -48,7 +57,7 @@ async def auth_middleware(request, handler):
     except jwt.InvalidTokenError:
         raise HTTPUnauthorized(text="Invalid token")
 
-    request["user"] = payload
+    request["user_id"] = payload.get("user_id")
     return await handler(request)
 
 def setup_middleware(app: "Application"):
